@@ -687,20 +687,50 @@ export default function App() {
       }
       setTimeout(async () => {
   try {
-    const element = document.getElementById('pdf-wrapper');
-    const rect = element.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
+   const element = document.getElementById('pdf-wrapper');
 
-    // Clone the element to capture full styles
-    const clone = element.cloneNode(true);
-    clone.style.position = 'absolute';
-    clone.style.top = '0';
-    clone.style.left = '0';
-    clone.style.width = width + 'px';
-    clone.style.height = height + 'px';
-    document.body.appendChild(clone);
+// Force the clone to render at full A4-like width
+const EXPORT_WIDTH = 1200;
 
+const clone = element.cloneNode(true);
+clone.style.position = 'fixed';
+clone.style.top = '-9999px';
+clone.style.left = '0';
+clone.style.width = EXPORT_WIDTH + 'px';
+clone.style.minWidth = EXPORT_WIDTH + 'px';
+clone.style.maxWidth = EXPORT_WIDTH + 'px';
+clone.style.height = 'auto';
+clone.style.overflow = 'visible';
+clone.style.zIndex = '-1';
+document.body.appendChild(clone);
+
+// Wait for layout to recalculate
+await new Promise(r => setTimeout(r, 300));
+
+const height = clone.scrollHeight;
+
+const canvas = await window.html2canvas(clone, {
+  scale: 2,
+  useCORS: true,
+  allowTaint: true,
+  logging: false,
+  width: EXPORT_WIDTH,
+  height: height,
+  windowWidth: EXPORT_WIDTH,
+  scrollX: 0,
+  scrollY: 0,
+  backgroundColor: '#ffffff',
+  imageTimeout: 15000,
+  onclone: (clonedDoc) => {
+    clonedDoc.querySelectorAll('svg').forEach(svg => {
+      svg.style.overflow = 'visible';
+      svg.setAttribute('width', svg.getBoundingClientRect().width || '100');
+      svg.setAttribute('height', svg.getBoundingClientRect().height || '100');
+    });
+  }
+});
+
+document.body.removeChild(clone);
     const canvas = await window.html2canvas(clone, {
       scale: 3,
       useCORS: true,
