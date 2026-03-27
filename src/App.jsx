@@ -686,29 +686,63 @@ export default function App() {
         });
       }
       setTimeout(async () => {
-        try {
-          const element = document.getElementById('pdf-wrapper');
-          const canvas = await window.html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            windowWidth: 800,
-            scrollY: 0,
-            backgroundColor: '#ffffff',
-          });
-          const imageData = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.href = imageData;
-          link.download = `${patientName ? patientName.replace(/\s+/g, '_') : 'Patient'}_Treatment_Plan.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setIsGeneratingPdf(false);
-        } catch (err) {
-          console.error(err);
-          alert('Failed to generate image.');
-          setIsGeneratingPdf(false);
-        }
-      }, 500);
+  try {
+    const element = document.getElementById('pdf-wrapper');
+    const rect = element.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    // Clone the element to capture full styles
+    const clone = element.cloneNode(true);
+    clone.style.position = 'absolute';
+    clone.style.top = '0';
+    clone.style.left = '0';
+    clone.style.width = width + 'px';
+    clone.style.height = height + 'px';
+    document.body.appendChild(clone);
+
+    const canvas = await window.html2canvas(clone, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: width,
+      height: height,
+      x: 0,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
+      backgroundColor: '#ffffff',
+      imageTimeout: 15000,
+      removeContainer: true,
+      onclone: (clonedDoc) => {
+        // Force all SVG elements to be visible and full size
+        clonedDoc.querySelectorAll('svg').forEach(svg => {
+          svg.style.overflow = 'visible';
+        });
+        // Force images to load
+        clonedDoc.querySelectorAll('img').forEach(img => {
+          img.crossOrigin = 'anonymous';
+        });
+      }
+    });
+
+    document.body.removeChild(clone);
+
+    const imageData = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = imageData;
+    link.download = `${patientName ? patientName.replace(/\s+/g, '_') : 'Patient'}_Treatment_Plan.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setIsGeneratingPdf(false);
+  } catch (err) {
+    console.error(err);
+    alert('Failed to generate image.');
+    setIsGeneratingPdf(false);
+  }
+}, 500);
     } catch (error) {
       console.error(error); alert('Failed to load image library.'); setIsGeneratingPdf(false);
     }
