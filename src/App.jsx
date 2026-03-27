@@ -746,16 +746,38 @@ document.body.removeChild(clone);
       imageTimeout: 15000,
       removeContainer: true,
       onclone: (clonedDoc) => {
-        // Force all SVG elements to be visible and full size
-        clonedDoc.querySelectorAll('svg').forEach(svg => {
-          svg.style.overflow = 'visible';
-        });
-        // Force images to load
-        clonedDoc.querySelectorAll('img').forEach(img => {
-          img.crossOrigin = 'anonymous';
-        });
-      }
-    });
+  // Force the entire wrapper to be full width
+  const wrapper = clonedDoc.getElementById('pdf-wrapper');
+  if (wrapper) {
+    wrapper.style.width = EXPORT_WIDTH + 'px';
+    wrapper.style.minWidth = EXPORT_WIDTH + 'px';
+    wrapper.style.maxWidth = 'none';
+  }
+
+  // Force the dental chart section to take full available width
+  const chartContainers = clonedDoc.querySelectorAll(
+    '[class*="dental"], [class*="chart"], [class*="teeth"], [class*="tooth"]'
+  );
+  chartContainers.forEach(el => {
+    el.style.width = '100%';
+    el.style.maxWidth = 'none';
+    el.style.flex = '1';
+  });
+
+  // Make all SVG teeth full size
+  clonedDoc.querySelectorAll('svg').forEach(svg => {
+    svg.style.overflow = 'visible';
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+  });
+
+  // Make images load with CORS
+  clonedDoc.querySelectorAll('img').forEach(img => {
+    img.crossOrigin = 'anonymous';
+  });
+}
 
     document.body.removeChild(clone);
 
