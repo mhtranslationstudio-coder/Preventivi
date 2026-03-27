@@ -745,14 +745,28 @@ document.body.removeChild(clone);
       backgroundColor: '#ffffff',
       imageTimeout: 15000,
       removeContainer: true,
-      onclone: (clonedDoc) => {
-  // Force the entire wrapper to be full width
-  const wrapper = clonedDoc.getElementById('pdf-wrapper');
-  if (wrapper) {
-    wrapper.style.width = EXPORT_WIDTH + 'px';
-    wrapper.style.minWidth = EXPORT_WIDTH + 'px';
-    wrapper.style.maxWidth = 'none';
-  }
+     onclone: (clonedDoc) => {
+  // Inject a style that removes all size constraints inside the wrapper
+  const style = clonedDoc.createElement('style');
+  style.innerHTML = `
+    #pdf-wrapper {
+      width: ${EXPORT_WIDTH}px !important;
+      min-width: ${EXPORT_WIDTH}px !important;
+      max-width: none !important;
+    }
+    #pdf-wrapper * {
+      max-width: none !important;
+      box-sizing: border-box !important;
+    }
+    #pdf-wrapper img {
+      max-width: 100% !important;
+    }
+    #pdf-wrapper svg {
+      overflow: visible !important;
+    }
+  `;
+  clonedDoc.head.appendChild(style);
+}
 
   // Force the dental chart section to take full available width
   const chartContainers = clonedDoc.querySelectorAll(
