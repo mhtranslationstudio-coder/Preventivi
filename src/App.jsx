@@ -690,7 +690,7 @@ export default function App() {
    const element = document.getElementById('pdf-wrapper');
 
 // Force the clone to render at full A4-like width
-const EXPORT_WIDTH = 1200;
+const EXPORT_WIDTH = 1600;
 
 const clone = element.cloneNode(true);
 clone.style.position = 'fixed';
